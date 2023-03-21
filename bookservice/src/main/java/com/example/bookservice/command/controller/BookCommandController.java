@@ -33,14 +33,14 @@ public class BookCommandController {
 
     @PutMapping
     public ResponseEntity<String> updateBook(@RequestBody BookRequestModel model){
-        UpdateBookCommand command = UpdateBookCommand
+        UpdateBookCommand updateBookCommand = UpdateBookCommand
                 .builder()
                 .bookId(model.getBookId())
                 .author(model.getAuthor())
                 .name(model.getName())
                 .isReady(model.getIsReady())
                 .build();
-        commandGateway.sendAndWait(command);
+        commandGateway.sendAndWait(updateBookCommand);
         return ResponseEntity.ok("Updated");
     }
 

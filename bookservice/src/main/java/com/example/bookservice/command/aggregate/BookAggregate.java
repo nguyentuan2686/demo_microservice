@@ -18,7 +18,6 @@ import org.springframework.beans.BeanUtils;
 
 @Aggregate
 @NoArgsConstructor
-@AllArgsConstructor
 public class BookAggregate {
 
     @AggregateIdentifier
@@ -28,18 +27,20 @@ public class BookAggregate {
     private Boolean isReady;
 
     //Thinking change status object (not sure change)
+    //Must at least one constructor
     @CommandHandler
-    public void handle(CreateBookCommand createBookCommand){
+    public BookAggregate(CreateBookCommand createBookCommand){
         BookCreateEvent bookCreateEvent = new BookCreateEvent();
         BeanUtils.copyProperties(createBookCommand, bookCreateEvent);
         AggregateLifecycle.apply(bookCreateEvent);
     }
 
+    //Another command handle must have form style method void handle, command name = first param class name
     @CommandHandler
     public void handle(UpdateBookCommand updateBookCommand){
         BookUpdateEvent bookUpdateEvent = new BookUpdateEvent();
         BeanUtils.copyProperties(updateBookCommand, bookUpdateEvent);
-        AggregateLifecycle.apply(updateBookCommand);
+        AggregateLifecycle.apply(bookUpdateEvent);
     }
 
     @CommandHandler
@@ -48,8 +49,10 @@ public class BookAggregate {
         BeanUtils.copyProperties(deleteBookCommand, bookDeleteEvent);
         AggregateLifecycle.apply(bookDeleteEvent);
     }
+
+    //Event from command -> sent to EventHandle
     @EventSourcingHandler
-    public void on(BookCreateEvent event){
+    public void onCreate(BookCreateEvent event){
         this.bookId = event.getBookId();
         this.author = event.getAuthor();
         this.isReady = event.getIsReady();
@@ -57,7 +60,7 @@ public class BookAggregate {
     }
 
     @EventSourcingHandler
-    public void on(BookUpdateEvent event){
+    public void onUpdate(BookUpdateEvent event){
         this.bookId = event.getBookId();
         this.author = event.getAuthor();
         this.isReady = event.getIsReady();
@@ -65,7 +68,7 @@ public class BookAggregate {
     }
 
     @EventSourcingHandler
-    public void on(BookDeleteEvent event){
+    public void onDelete(BookDeleteEvent event){
         this.bookId = event.getBookId();
     }
 }
