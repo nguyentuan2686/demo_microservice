@@ -1,11 +1,15 @@
 package com.example.employeeservice.command.controller;
 
+import com.example.basedomains.dto.Order;
+import com.example.basedomains.dto.OrderEvent;
 import com.example.employeeservice.command.command.CreateEmployeeCommand;
 import com.example.employeeservice.command.command.DeleteEmployeeCommand;
 import com.example.employeeservice.command.command.UpdateEmployeeCommand;
 import com.example.employeeservice.command.model.EmployeeRequestModel;
+import com.example.employeeservice.kafka.EmployeeProducer;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.weaver.ast.Or;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +25,7 @@ public class EmployeeCommandController {
 
     private final CommandGateway commandGateway;
 
+    private final EmployeeProducer producer;
 
     @PostMapping
     public ResponseEntity<String> addEmployee(@RequestBody EmployeeRequestModel model) {
@@ -58,6 +63,17 @@ public class EmployeeCommandController {
                 .build();
         commandGateway.sendAndWait(command);
         return ResponseEntity.ok("Deleted");
+    }
+
+    @PostMapping("/send-message")
+    public ResponseEntity<String> sendMessage(@RequestBody Order order){
+        order.setOrderId(UUID.randomUUID().toString());
+        OrderEvent orderEvent = new OrderEvent();
+        orderEvent.setStatus("Pending");
+        orderEvent.setMessage("Order s");
+        orderEvent.setOrder(order);
+        producer.sendMessage(orderEvent);
+        return ResponseEntity.ok("Sended message");
     }
 
 }
